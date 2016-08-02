@@ -9,7 +9,7 @@ boids = []
 def random_boid(width, height):
     return Boid(
             position=[random.uniform(0, width), random.uniform(0,height)],
-            direction=[random.uniform(-20.0, 20.0), random.uniform(-20.0, 20.0)],
+            direction=[random.uniform(-50.0, 50.0), random.uniform(-50.0, 50.0)],
             color=[random.random(), random.random(), random.random()])
 
 def get_window_config():
@@ -35,12 +35,12 @@ def main():
 
     #window = pyglet.window.Window(config = get_window_config())
     window = pyglet.window.Window(
-            800, 600,
+            1000, 1000,
             resizable=True,
             caption="Boids Simulation",
             config=get_window_config())
 
-    for i in range(1, 100):
+    for i in range(1, 50):
         boids.append(random_boid(window.width, window.height))
 
     # schedule world updates as often as possible
