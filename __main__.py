@@ -29,7 +29,7 @@ def get_window_config():
 
 def update(dt):
     for boid in boids:
-        boid.update(dt)
+        boid.update(dt, boids)
 
 def main():
 
