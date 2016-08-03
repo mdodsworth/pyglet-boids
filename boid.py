@@ -3,7 +3,7 @@ from pyglet.gl import *
 
 _BOID_WIDTH = 20.0
 _BOID_LENGTH = 30.0
-_BOID_RANGE = 75.0
+_BOID_RANGE = 150.0
 
 class Boid:
     def __init__(self,

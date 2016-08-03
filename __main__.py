@@ -33,7 +33,7 @@ def update(dt):
 
 def main():
 
-    #window = pyglet.window.Window(config = get_window_config())
+    show_debug = False
     window = pyglet.window.Window(
             1000, 1000,
             resizable=True,
@@ -51,7 +51,7 @@ def main():
         glClear(GL_COLOR_BUFFER_BIT)
         glLoadIdentity()
         for boid in boids:
-            boid.draw()
+            boid.draw(show_direction=show_debug, show_range=show_debug)
 
 
     @window.event
@@ -62,6 +62,9 @@ def main():
             boids.append(random_boid(window.width, window.height))
         elif symbol == key.MINUS:
             boids.pop()
+        elif symbol == key.D:
+            nonlocal show_debug
+            show_debug = not show_debug
 
     pyglet.app.run()
 
