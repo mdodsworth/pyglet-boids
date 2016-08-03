@@ -13,7 +13,7 @@ class Boid:
             direction=[0.0,0.0],
             color=[1.0,1.0,1.0]):
         self.position = position
-        self.bounds = bounds
+        self.wrap_bounds = [i + _BOUNDARY_SLOP for i in bounds]
         self.direction = direction
         self.color = color
 
@@ -68,10 +68,6 @@ class Boid:
         glPopMatrix()
 
     def update(self, dt, other_boids):
-
-        if self.position[0] < 0:
-            print(self.position)
-
         # update the boid's direction based on several behavioural rules
         # take the average position of all the boids, and move the boid towards that point
         sum_x, sum_y = 0.0, 0.0
@@ -81,10 +77,11 @@ class Boid:
                 sum_y += boid.position[1]
 
         average_x, average_y = (sum_x / (len(other_boids) - 1), sum_y / (len(other_boids) - 1))
+        print(average_x, average_y)
 
         for i, pos in enumerate(self.position):
             self.position[i] += dt * self.direction[i]
-            if self.position[i] >= self.bounds[i] + _BOUNDARY_SLOP:
-                self.position[i] = (self.position[i] % self.bounds[i]) - _BOUNDARY_SLOP
-            elif self.position[i] <= -_BOUNDARY_SLOP:
-                self.position[i] = self.bounds[i] + _BOUNDARY_SLOP
+            if self.position[i] >= self.wrap_bounds[i]:
+                self.position[i] = (self.position[i] % self.wrap_bounds[i]) - _BOUNDARY_SLOP
+            elif self.position[i] < -_BOUNDARY_SLOP:
+                self.position[i] = self.position[i] + self.wrap_bounds[i] + _BOUNDARY_SLOP
