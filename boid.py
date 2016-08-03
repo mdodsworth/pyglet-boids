@@ -47,7 +47,7 @@ class Boid:
         glEnd()
 
 
-    def draw(self, show_direction=True, show_range=True):
+    def draw(self, show_direction=False, show_range=False):
         glPushMatrix()
 
         # apply the transformation for the boid
