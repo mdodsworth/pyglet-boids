@@ -9,7 +9,7 @@ boids = []
 def random_boid(width, height):
     return Boid(
             position=[random.uniform(0, width), random.uniform(0,height)],
-            direction=[random.uniform(-50.0, 50.0), random.uniform(-50.0, 50.0)],
+            velocity=[random.uniform(-50.0, 50.0), random.uniform(-50.0, 50.0)],
             color=[random.random(), random.random(), random.random()])
 
 def get_window_config():
@@ -51,7 +51,7 @@ def main():
         glClear(GL_COLOR_BUFFER_BIT)
         glLoadIdentity()
         for boid in boids:
-            boid.draw(show_direction=show_debug, show_range=show_debug)
+            boid.draw(show_velocity=show_debug, show_view=show_debug)
 
 
     @window.event
