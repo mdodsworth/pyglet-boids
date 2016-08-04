@@ -3,10 +3,11 @@ from pyglet.gl import *
 
 _BOID_WIDTH = 20.0
 _BOID_LENGTH = 30.0
-_BOID_RANGE = 250.0
-_BOID_VIEW_ANGLE = 10
-_MAX_SPEED = 100.0
-_MIN_SPEED = 25.0
+_BOID_RANGE = 200.0
+_BOID_VIEW_ANGLE = 110
+_COLLISION_DISTANCE = 35.0
+_MAX_SPEED = 150.0
+_MIN_SPEED = 35.0
 _BOUNDARY_SLOP = 200.0
 
 
@@ -86,11 +87,10 @@ class Boid:
     def vector_angle_between(self, a, b):
         angle = math.degrees(
                 math.acos(self.vector_dot(a, b) / (self.vector_magnitude(*a) * self.vector_magnitude(*b))))
-        print(angle)
         return angle
 
 
-    def normalize_velocity(self):
+    def limit_velocity(self):
         current_speed = self.vector_magnitude(*self.velocity)
         if current_speed > _MAX_SPEED:
             normalizing_factor = _MAX_SPEED / current_speed
@@ -105,9 +105,7 @@ class Boid:
     def determine_nearby_boids(self, all_boids):
         """Note, this can be done more efficiently if performed globally, rather than for each individual boid."""
         for boid in all_boids:
-            diff = (self.position[0] - boid.position[0], self.position[1] - boid.position[1])
-            #print(self.vector_dot(self.velocity, diff) /
-                    #(self.vector_magnitude(*self.velocity) * self.vector_magnitude(*diff)))
+            diff = (boid.position[0] - self.position[0], boid.position[1] - self.position[1])
             if (boid != self and
                     self.vector_magnitude(*diff) <= _BOID_RANGE and
                     self.vector_angle_between(self.velocity, diff) <= _BOID_VIEW_ANGLE):
@@ -144,20 +142,39 @@ class Boid:
             return [0.0, 0.0]
 
 
+    def avoid_collsions(self, boids):
+        # determine nearby boids using distance only
+        nearby_boids = (boid for boid in boids if (boid != self and
+            self.vector_magnitude(boid.position[0] - self.position[0],
+                boid.position[1] - self.position[1]) <= _COLLISION_DISTANCE))
+
+        c = [0.0, 0.0]
+        for boid in nearby_boids:
+            c[0] = c[0] - (boid.position[0] - self.position[0])
+            c[1] = c[1] - (boid.position[1] - self.position[1])
+
+        return c
+
+
     def update(self, dt, all_boids):
         nearby_boids = list(self.determine_nearby_boids(all_boids))
 
         # update the boid's direction based on several behavioural rules
-        proximity_vector = self.direction_to_center(nearby_boids)
-        velocity_vector = self.average_velocity(nearby_boids)
+        cohesion_vector = self.direction_to_center(nearby_boids)
+        alignment_vector = self.average_velocity(nearby_boids)
+        separation_vector = self.avoid_collsions(all_boids)
 
-        change_vectors = [(0.01, proximity_vector), (0.01, velocity_vector)]
+        change_vectors = [
+                (0.01, cohesion_vector),
+                (0.02, alignment_vector),
+                (0.07, separation_vector)]
+
         for factor, vector in change_vectors:
             self.velocity[0] += factor * vector[0]
             self.velocity[1] += factor * vector[1]
 
         # ensure that the boid's velocity is <= _MAX_SPEED
-        self.normalize_velocity()
+        self.limit_velocity()
 
         # move the boid to its new position, given its current velocity,
         # taking into account the world boundaries
