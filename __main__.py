@@ -40,7 +40,7 @@ def main():
             caption="Boids Simulation",
             config=get_window_config())
 
-    for i in range(1, 50):
+    for i in range(1, 3):
         boids.append(random_boid(window.width, window.height))
 
     # schedule world updates as often as possible

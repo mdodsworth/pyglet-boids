@@ -83,6 +83,13 @@ class Boid:
         return sum(i * j for i, j in zip(a, b))
 
 
+    def vector_angle_between(self, a, b):
+        angle = math.degrees(
+                math.acos(self.vector_dot(a, b) / (self.vector_magnitude(*a) * self.vector_magnitude(*b))))
+        print(angle)
+        return angle
+
+
     def normalize_velocity(self):
         current_speed = self.vector_magnitude(*self.velocity)
         if current_speed > _MAX_SPEED:
@@ -103,10 +110,7 @@ class Boid:
                     #(self.vector_magnitude(*self.velocity) * self.vector_magnitude(*diff)))
             if (boid != self and
                     self.vector_magnitude(*diff) <= _BOID_RANGE and
-                    self.vector_dot(self.velocity, diff) / (
-                        self.vector_magnitude(*self.velocity) * self.vector_magnitude(*diff))):
-                print(self.vector_dot(self.velocity, diff) / (
-                    self.vector_magnitude(*self.velocity) * self.vector_magnitude(*diff)))
+                    self.vector_angle_between(self.velocity, diff) <= _BOID_VIEW_ANGLE):
                 yield boid
         return
 
