@@ -5,11 +5,12 @@ _BOID_WIDTH = 20.0
 _BOID_LENGTH = 30.0
 _BOID_RANGE = 250.0
 _BOID_VIEW_ANGLE = 110
-_COLLISION_DISTANCE = 100.0
+_COLLISION_DISTANCE = 75.0
+_MAX_COLLISION_VELOCITY = 50.0
 _CHANGE_VECTOR_LENGTH = 15.0
 _MAX_SPEED = 150.0
 _MIN_SPEED = 35.0
-_BOUNDARY_SLOP = 200.0
+_BOUNDARY_SLOP = 50.0
 
 
 class Boid:
@@ -55,8 +56,6 @@ class Boid:
 
         color = [0.0, 0.0, 0.0]
         for i, (factor, vector) in enumerate(self.change_vectors):
-            #if i == 0:
-                #print(*vector)
             color[i] = 1.0
             glColor3f(*color)
             glVertex2f(0.0, 0.0)
@@ -110,16 +109,15 @@ class Boid:
         return angle
 
 
-    def limit_velocity(self):
-        current_speed = self.vector_magnitude(*self.velocity)
-        if current_speed > _MAX_SPEED:
-            normalizing_factor = _MAX_SPEED / current_speed
-        elif current_speed < _MIN_SPEED:
-            normalizing_factor = _MIN_SPEED / current_speed
-        else: return
+    def limit_velocity(self, vector, max_magnitude, min_magnitude = 0.0):
+        magnitude = self.vector_magnitude(*vector)
+        if magnitude > max_magnitude:
+            normalizing_factor = max_magnitude / magnitude
+        elif magnitude < min_magnitude:
+            normalizing_factor = min_magnitude / magnitude
+        else: return vector
 
-        for i, value in enumerate(self.velocity):
-            self.velocity[i] *= normalizing_factor
+        return [value * normalizing_factor for value in vector]
 
 
     def determine_nearby_boids(self, all_boids):
@@ -172,8 +170,7 @@ class Boid:
         for boid in nearby_boids:
             c[0] = c[0] - (_COLLISION_DISTANCE / (boid.position[0] - self.position[0]))
             c[1] = c[1] - (_COLLISION_DISTANCE / (boid.position[1] - self.position[1]))
-
-        return c
+        return self.limit_velocity(c, _MAX_COLLISION_VELOCITY)
 
 
     def update(self, dt, all_boids):
@@ -186,15 +183,15 @@ class Boid:
 
         self.change_vectors = [
                 (0.02, cohesion_vector),
-                (0.02, alignment_vector),
-                (0.05, separation_vector)]
+                (0.045, alignment_vector),
+                (0.055, separation_vector)]
 
         for factor, vector in self.change_vectors:
             self.velocity[0] += factor * vector[0]
             self.velocity[1] += factor * vector[1]
 
         # ensure that the boid's velocity is <= _MAX_SPEED
-        self.limit_velocity()
+        self.velocity = self.limit_velocity(self.velocity, _MAX_SPEED, _MIN_SPEED)
 
         # move the boid to its new position, given its current velocity,
         # taking into account the world boundaries
