@@ -34,13 +34,14 @@ def update(dt):
 def main():
 
     show_debug = False
+    show_vectors = False
     window = pyglet.window.Window(
             1000, 1000,
             resizable=True,
             caption="Boids Simulation",
             config=get_window_config())
 
-    for i in range(1, 75):
+    for i in range(1, 35):
         boids.append(random_boid(window.width, window.height))
 
     # schedule world updates as often as possible
@@ -51,7 +52,7 @@ def main():
         glClear(GL_COLOR_BUFFER_BIT)
         glLoadIdentity()
         for boid in boids:
-            boid.draw(show_velocity=show_debug, show_view=show_debug)
+            boid.draw(show_velocity=show_debug, show_view=show_debug, show_vectors=show_vectors)
 
 
     @window.event
@@ -65,6 +66,9 @@ def main():
         elif symbol == key.D:
             nonlocal show_debug
             show_debug = not show_debug
+        elif symbol == key.V:
+            nonlocal show_vectors
+            show_vectors = not show_vectors
 
     pyglet.app.run()
 
