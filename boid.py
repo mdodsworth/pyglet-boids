@@ -1,30 +1,37 @@
 import math
+import vector
+
 from pyglet.gl import *
 
-_BOID_WIDTH = 20.0
-_BOID_LENGTH = 30.0
 _BOID_RANGE = 250.0
 _BOID_VIEW_ANGLE = 110
-_COLLISION_DISTANCE = 75.0
-_MAX_COLLISION_VELOCITY = 50.0
+_BOID_COLLISION_DISTANCE = 45.0
+_OBSTACLE_COLLISION_DISTANCE = 150.0
+_MAX_COLLISION_VELOCITY = 1.0
 _CHANGE_VECTOR_LENGTH = 15.0
-_MAX_SPEED = 150.0
-_MIN_SPEED = 35.0
+_MAX_SPEED = 225.0
+_MIN_SPEED = 50.0
 _BOUNDARY_SLOP = 50.0
 
+_COHESION_FACTOR = 0.02
+_ALIGNMENT_FACTOR = 0.045
+_BOID_AVOIDANCE_FACTOR = 7.5
+_OBSTACLE_AVOIDANCE_FACTOR = 600.0
+_ATTRACTOR_FACTOR = 0.0035
 
 class Boid:
     def __init__(self,
             position=[100.0,100.0],
             bounds=[1000, 1000],
             velocity=[0.0,0.0],
+            size=10.0,
             color=[1.0,1.0,1.0]):
         self.position = position
         self.wrap_bounds = [i + _BOUNDARY_SLOP for i in bounds]
         self.velocity = velocity
+        self.size = size
         self.color = color
         self.change_vectors = []
-        self.average_x, self.average_y = 0.0, 0.0
 
     def __repr__(self):
         return "Boid: position={}, velocity={}, color={}".format(self.position, self.velocity, self.color)
@@ -56,20 +63,20 @@ class Boid:
 
         color = [0.0, 0.0, 0.0]
         for i, (factor, vector) in enumerate(self.change_vectors):
-            color[i] = 1.0
+            color[i % 3] = 1.0
             glColor3f(*color)
             glVertex2f(0.0, 0.0)
             glVertex2f(*[i * factor * _CHANGE_VECTOR_LENGTH for i in vector])
-            color[i] = 0.0
+            color[i % 3] = 0.0
         glEnd()
 
 
     def render_boid(self):
         glBegin(GL_TRIANGLES)
         glColor3f(*self.color)
-        glVertex2f(-(_BOID_WIDTH/2), 0.0)
-        glVertex2f(0.0, _BOID_LENGTH)
-        glVertex2f(_BOID_WIDTH/2, 0.0)
+        glVertex2f(-(self.size), 0.0)
+        glVertex2f(self.size, 0.0)
+        glVertex2f(0.0, self.size * 3.0)
         glEnd()
 
 
@@ -95,38 +102,13 @@ class Boid:
         glPopMatrix()
 
 
-    def vector_magnitude(self, x, y):
-        return math.sqrt((x ** 2) + (y ** 2))
-
-
-    def vector_dot(self, a, b):
-        return sum(i * j for i, j in zip(a, b))
-
-
-    def vector_angle_between(self, a, b):
-        angle = math.degrees(
-                math.acos(self.vector_dot(a, b) / (self.vector_magnitude(*a) * self.vector_magnitude(*b))))
-        return angle
-
-
-    def limit_velocity(self, vector, max_magnitude, min_magnitude = 0.0):
-        magnitude = self.vector_magnitude(*vector)
-        if magnitude > max_magnitude:
-            normalizing_factor = max_magnitude / magnitude
-        elif magnitude < min_magnitude:
-            normalizing_factor = min_magnitude / magnitude
-        else: return vector
-
-        return [value * normalizing_factor for value in vector]
-
-
     def determine_nearby_boids(self, all_boids):
         """Note, this can be done more efficiently if performed globally, rather than for each individual boid."""
         for boid in all_boids:
             diff = (boid.position[0] - self.position[0], boid.position[1] - self.position[1])
             if (boid != self and
-                    self.vector_magnitude(*diff) <= _BOID_RANGE and
-                    self.vector_angle_between(self.velocity, diff) <= _BOID_VIEW_ANGLE):
+                    vector.magnitude(*diff) <= _BOID_RANGE and
+                    vector.angle_between(self.velocity, diff) <= _BOID_VIEW_ANGLE):
                 yield boid
         return
 
@@ -139,8 +121,8 @@ class Boid:
                 sum_x += boid.position[0]
                 sum_y += boid.position[1]
 
-            self.average_x, self.average_y = (sum_x / len(nearby_boids), sum_y / len(nearby_boids))
-            return [self.average_x - self.position[0], self.average_y - self.position[1]]
+            average_x, average_y = (sum_x / len(nearby_boids), sum_y / len(nearby_boids))
+            return [average_x -self.position[0], average_y - self.position[1]]
         else:
             return [0.0, 0.0]
 
@@ -160,38 +142,57 @@ class Boid:
             return [0.0, 0.0]
 
 
-    def avoid_collisions(self, boids):
-        # determine nearby boids using distance only
-        nearby_boids = (boid for boid in boids if (boid != self and
-            self.vector_magnitude(boid.position[0] - self.position[0],
-                boid.position[1] - self.position[1]) <= _COLLISION_DISTANCE))
+    def avoid_collisions(self, objs, collision_distance):
+        # determine nearby objs using distance only
+        nearby_objs = (obj for obj in objs if (obj != self and
+            vector.magnitude(obj.position[0] - self.position[0],
+                obj.position[1] - self.position[1]) - self.size <= collision_distance))
 
         c = [0.0, 0.0]
-        for boid in nearby_boids:
-            c[0] = c[0] - (_COLLISION_DISTANCE / (boid.position[0] - self.position[0]))
-            c[1] = c[1] - (_COLLISION_DISTANCE / (boid.position[1] - self.position[1]))
-        return self.limit_velocity(c, _MAX_COLLISION_VELOCITY)
+        for obj in nearby_objs:
+            diff = obj.position[0] - self.position[0], obj.position[1] - self.position[1]
+            inv_sqr_magnitude = 1 / ((vector.magnitude(*diff) - self.size) ** 2)
+
+            c[0] = c[0] - inv_sqr_magnitude * diff[0]
+            c[1] = c[1] - inv_sqr_magnitude * diff[1]
+        return vector.limit_magnitude(c, _MAX_COLLISION_VELOCITY)
 
 
-    def update(self, dt, all_boids):
+    def attraction(self, attractors):
+        # generate a vector that moves the boid towards the attractors
+        a = [0.0, 0.0]
+        if not attractors: return a
+
+        for attractor in attractors:
+            a[0] += attractor.position[0] - self.position[0]
+            a[1] += attractor.position[1] - self.position[1]
+
+        return a
+
+
+    def update(self, dt, all_boids, attractors, obstacles):
         nearby_boids = list(self.determine_nearby_boids(all_boids))
 
         # update the boid's direction based on several behavioural rules
         cohesion_vector = self.direction_to_center(nearby_boids)
         alignment_vector = self.average_velocity(nearby_boids)
-        separation_vector = self.avoid_collisions(all_boids)
+        attractor_vector = self.attraction(attractors)
+        boid_avoidance_vector = self.avoid_collisions(all_boids, _BOID_COLLISION_DISTANCE)
+        obstacle_avoidance_vector = self.avoid_collisions(obstacles, _OBSTACLE_COLLISION_DISTANCE)
 
         self.change_vectors = [
-                (0.02, cohesion_vector),
-                (0.045, alignment_vector),
-                (0.055, separation_vector)]
+                (_COHESION_FACTOR, cohesion_vector),
+                (_ALIGNMENT_FACTOR, alignment_vector),
+                (_ATTRACTOR_FACTOR, attractor_vector),
+                (_BOID_AVOIDANCE_FACTOR, boid_avoidance_vector),
+                (_OBSTACLE_AVOIDANCE_FACTOR, obstacle_avoidance_vector)]
 
-        for factor, vector in self.change_vectors:
-            self.velocity[0] += factor * vector[0]
-            self.velocity[1] += factor * vector[1]
+        for factor, vec in self.change_vectors:
+            self.velocity[0] += factor *vec[0]
+            self.velocity[1] += factor *vec[1]
 
         # ensure that the boid's velocity is <= _MAX_SPEED
-        self.velocity = self.limit_velocity(self.velocity, _MAX_SPEED, _MIN_SPEED)
+        self.velocity = vector.limit_magnitude(self.velocity, _MAX_SPEED, _MIN_SPEED)
 
         # move the boid to its new position, given its current velocity,
         # taking into account the world boundaries

@@ -1,14 +1,19 @@
 from boid import Boid
+from attractor import Attractor
+from obstacle import Obstacle
 
 import random
 from pyglet.gl import *
 from pyglet.window import key
 
 boids = []
+attractors = []
+obstacles = []
 
 def random_boid(width, height):
     return Boid(
             position=[random.uniform(0, width), random.uniform(0,height)],
+            bounds=[width, height],
             velocity=[random.uniform(-50.0, 50.0), random.uniform(-50.0, 50.0)],
             color=[random.random(), random.random(), random.random()])
 
@@ -29,17 +34,22 @@ def get_window_config():
 
 def update(dt):
     for boid in boids:
-        boid.update(dt, boids)
+        boid.update(dt, boids, attractors, obstacles)
 
 def main():
 
     show_debug = False
     show_vectors = False
+    mouse_location = (0, 0)
     window = pyglet.window.Window(
-            1000, 1000,
-            resizable=True,
+            fullscreen=True,
             caption="Boids Simulation",
             config=get_window_config())
+
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    #window.push_handlers(pyglet.window.event.WindowEventLogger())
 
     for i in range(1, 35):
         boids.append(random_boid(window.width, window.height))
@@ -47,12 +57,20 @@ def main():
     # schedule world updates as often as possible
     pyglet.clock.schedule(update)
 
+
     @window.event
     def on_draw():
         glClear(GL_COLOR_BUFFER_BIT)
         glLoadIdentity()
+
         for boid in boids:
             boid.draw(show_velocity=show_debug, show_view=show_debug, show_vectors=show_vectors)
+
+        for attractor in attractors:
+            attractor.draw()
+
+        for obstacle in obstacles:
+            obstacle.draw()
 
 
     @window.event
@@ -61,7 +79,7 @@ def main():
             pyglet.app.exit()
         elif symbol == key.EQUAL and modifiers & key.MOD_SHIFT:
             boids.append(random_boid(window.width, window.height))
-        elif symbol == key.MINUS:
+        elif symbol == key.MINUS and len(boids) > 0:
             boids.pop()
         elif symbol == key.D:
             nonlocal show_debug
@@ -69,6 +87,24 @@ def main():
         elif symbol == key.V:
             nonlocal show_vectors
             show_vectors = not show_vectors
+        elif symbol == key.A:
+            attractors.append(Attractor(position = mouse_location))
+        elif symbol == key.O:
+            obstacles.append(Obstacle(position = mouse_location))
+
+
+
+    @window.event
+    def on_mouse_drag(x, y, *args):
+        nonlocal mouse_location
+        mouse_location = x, y
+
+
+    @window.event
+    def on_mouse_motion(x, y, *args):
+        nonlocal mouse_location
+        mouse_location = x, y
+
 
     pyglet.app.run()
 
