@@ -79,7 +79,7 @@ def run():
 
     @window.event
     def on_key_press(symbol, modifiers):
-        if symbol == key.Q and modifiers & key.MOD_COMMAND:
+        if symbol == key.Q:
             pyglet.app.exit()
         elif symbol == key.EQUAL and modifiers & key.MOD_SHIFT:
             boids.append(create_random_boid(window.width, window.height))
