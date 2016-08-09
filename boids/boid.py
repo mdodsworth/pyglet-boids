@@ -123,7 +123,7 @@ class Boid:
         return
 
 
-    def direction_to_center(self, nearby_boids):
+    def average_position(self, nearby_boids):
         # take the average position of all nearby boids, and move the boid towards that point
         if len(nearby_boids) > 0:
             sum_x, sum_y = 0.0, 0.0
@@ -139,7 +139,7 @@ class Boid:
 
     def average_velocity(self, nearby_boids):
         # take the average velocity of all nearby boids
-        # todo - combine this function with direction_to_center
+        # todo - combine this function with average_position
         if len(nearby_boids) > 0:
             sum_x, sum_y = 0.0, 0.0
             for boid in nearby_boids:
@@ -188,7 +188,7 @@ class Boid:
         nearby_boids = list(self.determine_nearby_boids(all_boids))
 
         # update the boid's direction based on several behavioural rules
-        cohesion_vector = self.direction_to_center(nearby_boids)
+        cohesion_vector = self.average_position(nearby_boids)
         alignment_vector = self.average_velocity(nearby_boids)
         attractor_vector = self.attraction(attractors)
         boid_avoidance_vector = self.avoid_collisions(all_boids, _BOID_COLLISION_DISTANCE)
