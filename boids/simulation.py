@@ -4,7 +4,7 @@ import random
 import pyglet
 from pyglet.gl import (
     Config,
-    glEnable, glBlendFunc, glLoadIdentity, glClear,
+    glEnable, glBlendFunc, glLoadIdentity, glClearColor,
     GL_BLEND, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_COLOR_BUFFER_BIT)
 from pyglet.window import key
 
@@ -53,7 +53,7 @@ def run():
 
     #window.push_handlers(pyglet.window.event.WindowEventLogger())
 
-    for i in range(1, 35):
+    for i in range(1, 60):
         boids.append(create_random_boid(window.width, window.height))
 
     def update(dt):
@@ -65,7 +65,8 @@ def run():
 
     @window.event
     def on_draw():
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClearColor(0.1, 0.1, 0.1, 1.0)
+        window.clear()
         glLoadIdentity()
 
         for boid in boids:
