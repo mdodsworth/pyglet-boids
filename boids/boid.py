@@ -1,7 +1,12 @@
-import math
-import vector
+# -*- coding: utf-8 -*-
 
-from pyglet.gl import *
+import math
+from pyglet.gl import (
+    glPushMatrix, glPopMatrix, glBegin, glEnd, glColor3f,
+    glVertex2f, glTranslatef, glRotatef,
+    GL_LINE_LOOP, GL_LINES, GL_TRIANGLES)
+
+from . import vector
 
 _BOID_RANGE = 250.0
 _BOID_VIEW_ANGLE = 110
@@ -16,16 +21,17 @@ _BOUNDARY_SLOP = 50.0
 _COHESION_FACTOR = 0.03
 _ALIGNMENT_FACTOR = 0.045
 _BOID_AVOIDANCE_FACTOR = 7.5
-_OBSTACLE_AVOIDANCE_FACTOR = 200.0
+_OBSTACLE_AVOIDANCE_FACTOR = 300.0
 _ATTRACTOR_FACTOR = 0.0035
+
 
 class Boid:
     def __init__(self,
-            position=[100.0,100.0],
-            bounds=[1000, 1000],
-            velocity=[0.0,0.0],
-            size=10.0,
-            color=[1.0,1.0,1.0]):
+                 position=[100.0, 100.0],
+                 bounds=[1000, 1000],
+                 velocity=[0.0, 0.0],
+                 size=10.0,
+                 color=[1.0, 1.0, 1.0]):
         self.position = position
         self.wrap_bounds = [i + _BOUNDARY_SLOP for i in bounds]
         self.velocity = velocity
@@ -34,7 +40,8 @@ class Boid:
         self.change_vectors = []
 
     def __repr__(self):
-        return "Boid: position={}, velocity={}, color={}".format(self.position, self.velocity, self.color)
+        return "Boid: position={}, velocity={}, color={}".format(
+            self.position, self.velocity, self.color)
 
 
     def render_velocity(self):
@@ -53,7 +60,7 @@ class Boid:
         # render a circle for the boid's view
         for i in range(-_BOID_VIEW_ANGLE, _BOID_VIEW_ANGLE + step, step):
             glVertex2f(_BOID_RANGE * math.sin(math.radians(i)),
-                (_BOID_RANGE * math.cos(math.radians(i))))
+                       (_BOID_RANGE * math.cos(math.radians(i))))
         glVertex2f(0.0, 0.0)
         glEnd()
 
@@ -62,11 +69,11 @@ class Boid:
         glBegin(GL_LINES)
 
         color = [0.0, 0.0, 0.0]
-        for i, (factor, vector) in enumerate(self.change_vectors):
+        for i, (factor, vec) in enumerate(self.change_vectors):
             color[i % 3] = 1.0
             glColor3f(*color)
             glVertex2f(0.0, 0.0)
-            glVertex2f(*[i * factor * _CHANGE_VECTOR_LENGTH for i in vector])
+            glVertex2f(*[i * factor * _CHANGE_VECTOR_LENGTH for i in vec])
             color[i % 3] = 0.0
         glEnd()
 
@@ -103,7 +110,10 @@ class Boid:
 
 
     def determine_nearby_boids(self, all_boids):
-        """Note, this can be done more efficiently if performed globally, rather than for each individual boid."""
+        """Note, this can be done more efficiently if performed globally,
+        rather than for each individual boid.
+        """
+
         for boid in all_boids:
             diff = (boid.position[0] - self.position[0], boid.position[1] - self.position[1])
             if (boid != self and
@@ -144,9 +154,12 @@ class Boid:
 
     def avoid_collisions(self, objs, collision_distance):
         # determine nearby objs using distance only
-        nearby_objs = (obj for obj in objs if (obj != self and
-            vector.magnitude(obj.position[0] - self.position[0],
-                obj.position[1] - self.position[1]) - self.size <= collision_distance))
+        nearby_objs = (
+            obj for obj in objs
+            if (obj != self and
+                vector.magnitude(obj.position[0] - self.position[0],
+                                 obj.position[1] - self.position[1])
+                - self.size <= collision_distance))
 
         c = [0.0, 0.0]
         for obj in nearby_objs:
@@ -161,7 +174,8 @@ class Boid:
     def attraction(self, attractors):
         # generate a vector that moves the boid towards the attractors
         a = [0.0, 0.0]
-        if not attractors: return a
+        if not attractors:
+            return a
 
         for attractor in attractors:
             a[0] += attractor.position[0] - self.position[0]
@@ -181,11 +195,11 @@ class Boid:
         obstacle_avoidance_vector = self.avoid_collisions(obstacles, _OBSTACLE_COLLISION_DISTANCE)
 
         self.change_vectors = [
-                (_COHESION_FACTOR, cohesion_vector),
-                (_ALIGNMENT_FACTOR, alignment_vector),
-                (_ATTRACTOR_FACTOR, attractor_vector),
-                (_BOID_AVOIDANCE_FACTOR, boid_avoidance_vector),
-                (_OBSTACLE_AVOIDANCE_FACTOR, obstacle_avoidance_vector)]
+            (_COHESION_FACTOR, cohesion_vector),
+            (_ALIGNMENT_FACTOR, alignment_vector),
+            (_ATTRACTOR_FACTOR, attractor_vector),
+            (_BOID_AVOIDANCE_FACTOR, boid_avoidance_vector),
+            (_OBSTACLE_AVOIDANCE_FACTOR, obstacle_avoidance_vector)]
 
         for factor, vec in self.change_vectors:
             self.velocity[0] += factor *vec[0]
@@ -196,7 +210,7 @@ class Boid:
 
         # move the boid to its new position, given its current velocity,
         # taking into account the world boundaries
-        for i, pos in enumerate(self.position):
+        for i in range(0, len(self.position)):
             self.position[i] += dt * self.velocity[i]
             if self.position[i] >= self.wrap_bounds[i]:
                 self.position[i] = (self.position[i] % self.wrap_bounds[i]) - _BOUNDARY_SLOP

@@ -1,21 +1,24 @@
-from boid import Boid
-from attractor import Attractor
-from obstacle import Obstacle
+# -*- coding: utf-8 -*-
 
 import random
-from pyglet.gl import *
+import pyglet
+from pyglet.gl import (
+    Config,
+    glEnable, glBlendFunc, glLoadIdentity, glClear,
+    GL_BLEND, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_COLOR_BUFFER_BIT)
 from pyglet.window import key
 
-boids = []
-attractors = []
-obstacles = []
+from .boid import Boid
+from .attractor import Attractor
+from .obstacle import Obstacle
 
-def random_boid(width, height):
+
+def create_random_boid(width, height):
     return Boid(
-            position=[random.uniform(0, width), random.uniform(0,height)],
-            bounds=[width, height],
-            velocity=[random.uniform(-50.0, 50.0), random.uniform(-50.0, 50.0)],
-            color=[random.random(), random.random(), random.random()])
+        position=[random.uniform(0, width), random.uniform(0, height)],
+        bounds=[width, height],
+        velocity=[random.uniform(-50.0, 50.0), random.uniform(-50.0, 50.0)],
+        color=[random.random(), random.random(), random.random()])
 
 def get_window_config():
     platform = pyglet.window.get_platform()
@@ -32,19 +35,18 @@ def get_window_config():
     return config
 
 
-def update(dt):
-    for boid in boids:
-        boid.update(dt, boids, attractors, obstacles)
-
-def main():
-
+def run():
     show_debug = False
     show_vectors = False
+    boids = []
+    attractors = []
+    obstacles = []
+
     mouse_location = (0, 0)
     window = pyglet.window.Window(
-            fullscreen=True,
-            caption="Boids Simulation",
-            config=get_window_config())
+        fullscreen=True,
+        caption="Boids Simulation",
+        config=get_window_config())
 
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -52,11 +54,14 @@ def main():
     #window.push_handlers(pyglet.window.event.WindowEventLogger())
 
     for i in range(1, 35):
-        boids.append(random_boid(window.width, window.height))
+        boids.append(create_random_boid(window.width, window.height))
+
+    def update(dt):
+        for boid in boids:
+            boid.update(dt, boids, attractors, obstacles)
 
     # schedule world updates as often as possible
     pyglet.clock.schedule(update)
-
 
     @window.event
     def on_draw():
@@ -72,13 +77,12 @@ def main():
         for obstacle in obstacles:
             obstacle.draw()
 
-
     @window.event
     def on_key_press(symbol, modifiers):
         if symbol == key.Q and modifiers & key.MOD_COMMAND:
             pyglet.app.exit()
         elif symbol == key.EQUAL and modifiers & key.MOD_SHIFT:
-            boids.append(random_boid(window.width, window.height))
+            boids.append(create_random_boid(window.width, window.height))
         elif symbol == key.MINUS and len(boids) > 0:
             boids.pop()
         elif symbol == key.D:
@@ -88,24 +92,18 @@ def main():
             nonlocal show_vectors
             show_vectors = not show_vectors
         elif symbol == key.A:
-            attractors.append(Attractor(position = mouse_location))
+            attractors.append(Attractor(position=mouse_location))
         elif symbol == key.O:
-            obstacles.append(Obstacle(position = mouse_location))
-
-
+            obstacles.append(Obstacle(position=mouse_location))
 
     @window.event
     def on_mouse_drag(x, y, *args):
         nonlocal mouse_location
         mouse_location = x, y
 
-
     @window.event
     def on_mouse_motion(x, y, *args):
         nonlocal mouse_location
         mouse_location = x, y
 
-
     pyglet.app.run()
-
-main()
