@@ -1,6 +1,8 @@
 # Overview #
 
 A simple Boid simulation, based on Craig Reynolds [seminal paper](http://www.cs.toronto.edu/~dt/siggraph97-course/cwr87/).
+
+
 The intent of this project was to scratch a long-time itch, and (re)learn a few things along the way (although, the number of times I found myself on "GCSE Physics" and "Fun with Maths!" sites was somewhat depressing). For simplicity, Python and [Pyglet](https://bitbucket.org/pyglet/pyglet/wiki/Home) were used; Numpy was *not* used deliberately (as where would be the fun in that). This is certainly not supposed to be "production quality".
 
 ## Boid Behaviour ##
