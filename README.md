@@ -5,7 +5,7 @@ The intent of this project was to scratch a long-time itch, and (re)learn a few 
 
 ## Boid Behaviour ##
 
-A boid's motion is a function of multiple, simple behavioural rules. Each rule uses information of _that_ boid's perceived local environment, meaning that each boid acts independently and selfishly.
+A boid's motion is a function of multiple, simple behavioural rules. Each rule uses information of _that_ boid's perceived local environment, meaning that each boid acts independently.
 
 > "The aggregate motion of the simulated flock is the result of the dense interaction of the relatively simple behaviors of the individual simulated birds" -- Craig Reynolds
 
