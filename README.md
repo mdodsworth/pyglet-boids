@@ -22,7 +22,7 @@ Each boid attempts to move itself towards the [geometric center](https://en.wiki
 Alignment attempts to change a boid's velocity (i.e., direction and magnitude) to match that of its nearby boids (using the same definition of "nearby"
 as before). The below animation shows a world free from the shackles of alignment:
 
-[![cohesion only demo](docs/cohesion-only-thumbnail.jpg)](docs/cohesion-only.mov)
+[![cohesion only demo](docs/cohesion-only-thumbnail.jpg)](https://github.com/mdodsworth/pyglet-boids/raw/master/docs/cohesion-only.mov)
 
 Cohesion drives each boid towards its nearest neighbours, but there's a couple of notable problems:
 
@@ -36,7 +36,7 @@ Cohesion drives each boid towards its nearest neighbours, but there's a couple o
 
 The animation below shows a simulation with *only* alignment; it's more of a depressing death-march than a flock.
 
-[![alignment only demo](docs/alignment-only-thumbnail.jpg)](docs/alignment-only.mov)
+[![alignment only demo](docs/alignment-only-thumbnail.jpg)](https://github.com/mdodsworth/pyglet-boids/raw/master/docs/alignment-only.mov)
 
 ### Collision Avoidance ###
 
