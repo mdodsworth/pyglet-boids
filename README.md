@@ -1,13 +1,15 @@
 # Overview #
 
 A simple Boid simulation, based on Craig Reynolds [seminal paper](http://www.cs.toronto.edu/~dt/siggraph97-course/cwr87/).
-The intent of this project was to scratch a long-time itch, and (re)learn a few things along the way (although, the number of times I found myself on "GCSE Physics" and "Fun with Maths!" sites was somewhat depressing). For simplicity, Python and [Pyglet](https://bitbucket.org/pyglet/pyglet/wiki/Home) were used; Numpy was *not* used deliberately (as where would be the fun in that).
+The intent of this project was to scratch a long-time itch, and (re)learn a few things along the way (although, the number of times I found myself on "GCSE Physics" and "Fun with Maths!" sites was somewhat depressing). For simplicity, Python and [Pyglet](https://bitbucket.org/pyglet/pyglet/wiki/Home) were used; Numpy was *not* used deliberately (as where would be the fun in that). This is certainly not supposed to be "production quality".
 
 ## Boid Behaviour ##
 
 A boid's motion is a function of multiple, simple behavioural rules. Each rule uses information of _that_ boid's perceived local environment, meaning that each boid acts independently and selfishly.
 
 > "The aggregate motion of the simulated flock is the result of the dense interaction of the relatively simple behaviors of the individual simulated birds" -- Craig Reynolds
+
+[![Boids demo](docs/boids-demo-thumbnail.jpg)](docs/boids-demo.mov)
 
 ### Cohesion ###
 
@@ -18,7 +20,7 @@ Each boid attempts to move itself towards the [geometric center](https://en.wiki
 Alignment attempts to change a boid's velocity (i.e., direction and magnitude) to match that of its nearby boids (using the same definition of "nearby"
 as before). The below animation shows a world free from the shackles of alignment:
 
-[!cohesion only demo](docs/cohesion-only.gif)
+[[!cohesion only demo](docs/cohesion-only-thumbnail.jpg)](docs/cohesion-only.mov)
 
 Cohesion drives each boid towards its nearest neighbours, but there's a couple of notable problems:
 
@@ -29,6 +31,10 @@ Cohesion drives each boid towards its nearest neighbours, but there's a couple o
   predominantly increase its speed. From the above example, after a short time, all boids reach maximum speed, and can no
   longer close the gap between it and its neighbouring boids (which are typically ahead of it). This results in more of
   a marching line than a flock.
+
+The animation below shows a simulation with *only* alignment; it's more of a depressing death-march than a flock.
+
+[[!alignment only demo](docs/alignment-only-thumbnail.jpg)](docs/alignment-only.mov)
 
 ### Collision Avoidance ###
 
@@ -45,9 +51,9 @@ of distance and direction. Although I tried a few different functions to generat
 
 ### Combining Forces ###
 
-In Craig's paper, the "Arbitrating Independent Behaviors" section discusses 
-
-![Boids demo](docs/boids-demo.gif)
+In the original Boids paper, the "Arbitrating Independent Behaviors" section considers several strategies for combining
+behaviours. In its current form, this project simply takes the sum of all change vectors. Future versions may explore
+prioritization or more complex selection/blending.
 
 # Setup #
 
