@@ -29,7 +29,7 @@ Cohesion drives each boid towards its nearest neighbours, but there's a couple o
 - boids moving in substantially different directions tend to perform dramatic fly-bys, rather than "flocking" together:
   the cohesive force in the above example isn't enough to slow boids moving in opposing directions. Once the boids pass
   each other, they no longer "see" each other, so the turning stops.
-- given that a boids visible range extends mostly in its direction of travel, the cohesive forces generated will
+- given that a boid's visible range extends mostly in its direction of travel, the cohesive forces generated will
   predominantly increase its speed. From the above example, after a short time, all boids reach maximum speed, and can no
   longer close the gap between it and its neighbouring boids (which are typically ahead of it). This results in more of
   a marching line than a flock.
